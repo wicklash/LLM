@@ -54,6 +54,17 @@ if response.status_code == 200:
                 else:
                     st.error("Çeviri hatası!")
             
+# ★ Yeni: Quiz Oluşturma Butonu ★
+            if st.button(f"Quiz Oluştur: {note['title']}", key=f"quiz_{note['id']}"):
+                quiz_response = requests.post(f"{API_URL}/notes/{note['id']}/quiz")
+                if quiz_response.status_code == 200:
+                    quiz_data = quiz_response.json()
+                    st.subheader("Oluşturulan Quiz")
+                    # Burada LLM'den gelen quiz metnini gösteriyoruz.
+                    st.write(quiz_data.get("quiz", "Quiz verisi boş."))
+                else:
+                    st.error("Quiz oluşturulurken hata!")
+
             # Silme Butonu
             if st.button(f"Sil: {note['title']}", key=f"delete_{note['id']}"):
                 delete_response = requests.delete(f"{API_URL}/notes/{note['id']}")
