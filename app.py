@@ -62,7 +62,7 @@ elif page == "Yeni Öğrenci Ekle":
 
     # Öğrenciyi ekleme
     if st.button("✅ Öğrenci Ekle"):
-        # Öğrencinin tüm bilgileri ve dersler kontrol ediliyor
+        # Öğrencinin tüm bilgileri ve dersler kontrol ediliyo
         if student_id and first_name and last_name and age and len(st.session_state["courses"]) > 0:
             student = {
                 "student_id": student_id,
