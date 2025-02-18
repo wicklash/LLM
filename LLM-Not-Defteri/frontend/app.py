@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+from datetime import datetime
 
 # FastAPI backend URL
 API_URL = "http://127.0.0.1:8000"
@@ -12,7 +13,7 @@ title = st.sidebar.text_input("Başlık")
 content = st.sidebar.text_area("İçerik")
 
 if st.sidebar.button("Notu Kaydet"):
-    new_note = {"title": title, "content": content}
+    new_note = {"title": title, "content": content, "timestamp": datetime.now().isoformat()}
     response = requests.post(f"{API_URL}/notes", json=new_note)
     if response.status_code == 200:
         st.sidebar.success("Not başarıyla kaydedildi!")
@@ -28,6 +29,10 @@ if response.status_code == 200:
         for note in notes:
             st.subheader(note['title'])
             st.write(note['content'])
+            timestamp = note.get('timestamp', 'Tarih bilgisi yok')
+            if timestamp != 'Tarih bilgisi yok':
+                timestamp = datetime.fromisoformat(timestamp).strftime('%Y-%m-%d %H:%M')
+            st.write(f"Tarih: {timestamp}")
             
             # Özetleme Butonu
             if st.button(f"Özetle: {note['title']}", key=f"summarize_{note['id']}"):
