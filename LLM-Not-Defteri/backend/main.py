@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from pymongo import MongoClient
 from bson import ObjectId
 import requests
+from datetime import datetime
 
 # FastAPI uygulamasını başlat
 app = FastAPI(title="LLM Destekli Not Defteri API")
@@ -16,6 +17,7 @@ notes_collection = db['notes']  # Koleksiyon
 class Note(BaseModel):
     title: str
     content: str
+    timestamp: str = None
 
 # Çeviri isteği için Pydantic modeli
 class TranslationRequest(BaseModel):
@@ -32,6 +34,7 @@ OLLAMA_URL = "http://localhost:11434"
 async def create_note(note: Note):
     try:
         note_dict = note.dict()
+        note_dict["timestamp"] = datetime.now().isoformat()
         result = notes_collection.insert_one(note_dict)
         # MongoDB tarafından oluşturulan _id'yi string'e çevirip "id" olarak ekle
         note_dict["id"] = str(result.inserted_id)
