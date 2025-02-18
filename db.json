@@ -1,0 +1,33 @@
+[
+    {
+      "student_id": "S001",
+      "first_name": "Ali",
+      "last_name": "Yılmaz",
+      "age": 21,
+      "courses": [
+        { "course_name": "Matematik", "grade": "A" },
+        { "course_name": "Fizik", "grade": "B" }
+      ]
+    },
+    {
+      "student_id": "S002",
+      "first_name": "Ayşe",
+      "last_name": "Kara",
+      "age": 22,
+      "courses": [
+        { "course_name": "Kimya", "grade": "A" },
+        { "course_name": "Biyoloji", "grade": "B" }
+      ]
+    },
+    {
+      "student_id": "S003",
+      "first_name": "Mehmet",
+      "last_name": "Öztürk",
+      "age": 23,
+      "courses": [
+        { "course_name": "Türkçe", "grade": "C" },
+        { "course_name": "Edebiyat", "grade": "B" }
+      ]
+    }
+  ]
+  
