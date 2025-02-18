@@ -140,3 +140,42 @@ async def translate_text(request: TranslationRequest):
     except requests.exceptions.RequestException as e:
         print(f"Ollama'ya bağlanılamadı: {e}")
         raise HTTPException(status_code=500, detail="Ollama'ya bağlantı hatası")
+    
+    # ★ Yeni: Otomatik Quiz Oluşturma Endpoint'i ★
+@app.post("/notes/{note_id}/quiz")
+async def generate_quiz(note_id: str):
+    # İlgili notu MongoDB'den çekiyoruz.
+    note = notes_collection.find_one({"_id": ObjectId(note_id)})
+    if not note:
+        raise HTTPException(status_code=404, detail="Not bulunamadı")
+    
+    content = note.get("content", "")
+    if not content:
+        raise HTTPException(status_code=400, detail="Not içeriği boş.")
+    
+    # LLM'ye gönderilecek prompt'u oluşturuyoruz.
+    prompt = (
+        "Aşağıdaki ders notu içeriğine dayalı olarak bir quiz oluştur. "
+        "Oluşturduğun Quiz 'Türkçe' olsun.\n"
+        "Oluşturduğun Quiz 5 soru olsun."
+        "Her soru için 4 seçenek ve doğru cevabı belirt.\n"
+        "Lütfen quiz çıktısını markdown formatında oluştur; her soruyu 'Soru {n}: Aşağıdakilerden hangisi doğrudur? veya xxx nedir?' şeklinde başlat, seçenekleri alt alta sıralı (her biri yeni satırda olacak şekilde) listele ve en altta 'Doğru Cevap:' kısmında doğru seçeneği belirt. Seçenekleri A), B), C), D) şeklinde yaz.\n"
+        f"Ders Notu: {content}"
+    )
+    try:
+        response = requests.post(
+            f"{OLLAMA_URL}/api/generate",
+            json={
+                "model": "llama3:8b",
+                "prompt": prompt,
+                "stream": False
+            }
+        )
+        if response.status_code == 200:
+            # LLM'nin ürettiği quiz yanıtını alıyoruz.
+            quiz_response = response.json().get("response", "").strip()
+            return {"quiz": quiz_response}
+        else:
+            raise HTTPException(status_code=500, detail=f"Quiz oluşturulurken hata oluştu: {response.text}")
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail=f"Ollama'ya bağlanılamadı: {e}")
