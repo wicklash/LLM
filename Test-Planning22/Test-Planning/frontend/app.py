@@ -1,14 +1,15 @@
 import streamlit as st
 import requests
+import pandas as pd
+import plotly.express as px
 
 st.title("Test Planning Document Generator")
 
-# Dosya yükleme bileşeni: TXT, PDF veya DOCX dosya türlerini destekleyebilirsiniz.
+# Dosya yükleme bileşeni
 uploaded_file = st.file_uploader("Test planning için gerekli dosyayı yükleyin", type=["txt", "pdf", "docx"])
 
 if uploaded_file is not None:
     try:
-        # Örneğin, TXT dosyası için içerik okuma:
         content = uploaded_file.read().decode("utf-8")
     except Exception as e:
         st.error("Dosya okunurken hata oluştu: " + str(e))
@@ -23,14 +24,35 @@ if uploaded_file is not None:
         else:
             payload = {"content": content}
             try:
-                # FastAPI sunucusunun çalıştığı adresi kontrol edin.
                 response = requests.post("http://localhost:8000/generate_test_plan", json=payload)
                 if response.status_code == 200:
                     result = response.json()  # {"json_data": ..., "download_url": ...} bekleniyor.
                     st.success("Test planı başarıyla oluşturuldu.")
                     st.markdown(f"[Test Planını İndir]({result['download_url']})")
+                    
                     st.subheader("Oluşturulan Test Planı (JSON Formatında)")
                     st.json(result["json_data"])
+                    
+                    # Gantt chart oluşturmak için:
+                    df = pd.DataFrame(result["json_data"])
+                    # Tarih sütunlarını datetime formatına çeviriyoruz
+                    df["Start Date"] = pd.to_datetime(df["Start Date"])
+                    df["End Date"] = pd.to_datetime(df["End Date"])
+                    
+                    # Plotly Express timeline kullanarak gantt chart oluşturma
+                    fig = px.timeline(
+                        df,
+                        x_start="Start Date",
+                        x_end="End Date",
+                        y="Task Name",
+                        title="Test Planı Gantt Chart",
+                        labels={"Task Name": "Görevler"}
+                    )
+                    # Görevlerin üst üste binmemesi için y eksenini ters çeviriyoruz.
+                    fig.update_yaxes(autorange="reversed")
+                    
+                    st.plotly_chart(fig, use_container_width=True)
+                    
                 else:
                     st.error("Test planı oluşturulurken hata: " + response.text)
             except requests.exceptions.RequestException as e:
